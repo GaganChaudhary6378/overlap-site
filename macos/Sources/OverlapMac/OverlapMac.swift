@@ -3,6 +3,12 @@ import SwiftUI
 
 @main struct OverlapMac: App {
     @StateObject private var store = RoomStore()
+
+    init() {
+        NSApplication.shared.setActivationPolicy(.regular)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+
     var body: some Scene {
         WindowGroup("Overlap — Signal Office", id: "room") { RoomPanel(store: store) }
             .defaultSize(width: 440, height: 640)
@@ -108,8 +114,11 @@ struct RoomPanel: View {
         .preferredColorScheme(.light)
         .onOpenURL { _ in NSApplication.shared.activate(ignoringOtherApps: true) }
         .onAppear {
+            NSApplication.shared.setActivationPolicy(.regular)
             NSApplication.shared.activate(ignoringOtherApps: true)
-            NSApplication.shared.windows.first?.makeKeyAndOrderFront(nil)
+            NSApplication.shared.windows
+                .first(where: { $0.title.contains("Signal Office") })?
+                .makeKeyAndOrderFront(nil)
             focusedField = .baseURL
         }
         .task {
