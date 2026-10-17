@@ -42,6 +42,8 @@ Open [localhost:3000](http://localhost:3000), then choose **Open your room**. Wi
 4. Copy the project URL and **public anon/publishable key** into `.env.local`. Never expose a service-role key through `NEXT_PUBLIC_*` variables.
 5. Sign in, create a room, and privately share its invite token. The second person signs into their own account and joins. Use a separate room for each repository.
 
+For production email redirects, set `NEXT_PUBLIC_SITE_URL` to the deployed origin, such as `https://overlap-site-gagancopvtlimited-7880s-projects.vercel.app`. In Supabase Auth URL Configuration, use that origin as **Site URL** and allow the exact `/app` path plus `http://localhost:3000/**` for local development.
+
 Owners can replace invites and remove members. Removal invalidates the old invite. Membership protects reads; only authenticated RPCs change room state. Supabase handles email delivery and service quotas.
 
 ## Connect your ChatGPT plan
