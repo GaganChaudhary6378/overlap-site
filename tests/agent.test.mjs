@@ -21,4 +21,5 @@ test('MCP survives malformed requests and advertises advisory coordination tools
   assert.equal(tools.length, 5);
   assert.ok(tools.some(tool => tool.name === 'overlap_begin_work'));
   assert.ok(tools.some(tool => tool.name === 'overlap_finish_work'));
+  assert.ok(tools.find(tool => tool.name === 'overlap_begin_work').inputSchema.required.includes('target'));
 });

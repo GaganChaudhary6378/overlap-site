@@ -5,7 +5,7 @@ import { claimLines, getRoomSnapshot, releaseClaim, heartbeat } from '../src/lib
 
 const tools = [
   { name: 'overlap_status', description: 'Read active workers and file/range leases in the selected Overlap room. Call before planning or editing.', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
-  { name: 'overlap_begin_work', description: 'Call immediately before every planned edit. It automatically announces this Codex worker, checks conflicts, and returns structured room state. If conflicts exist, coordinate before writing.', inputSchema: { type: 'object', properties: { filePath: { type: 'string' }, startLine: { type: 'integer' }, endLine: { type: 'integer' }, branch: { type: 'string' }, agent: { type: 'string' } }, required: ['filePath', 'startLine', 'endLine', 'branch'], additionalProperties: false } },
+  { name: 'overlap_begin_work', description: 'Call immediately before every planned edit. target must name the logical code region, for example "function validateLogin". Matching targets conflict even when line numbers move. If conflicts exist, coordinate before writing.', inputSchema: { type: 'object', properties: { filePath: { type: 'string' }, startLine: { type: 'integer' }, endLine: { type: 'integer' }, branch: { type: 'string' }, target: { type: 'string' }, agent: { type: 'string' } }, required: ['filePath', 'startLine', 'endLine', 'branch', 'target'], additionalProperties: false } },
   { name: 'overlap_finish_work', description: 'Call after an edit is finished or abandoned to release its lease.', inputSchema: { type: 'object', properties: { claimId: { type: 'string' } }, required: ['claimId'], additionalProperties: false } },
   { name: 'overlap_claim', description: 'Compatibility alias for overlap_begin_work.', inputSchema: { type: 'object', properties: { filePath: { type: 'string' }, startLine: { type: 'integer' }, endLine: { type: 'integer' }, branch: { type: 'string' }, agent: { type: 'string' } }, required: ['filePath', 'startLine', 'endLine', 'branch'], additionalProperties: false } },
   { name: 'overlap_release', description: 'Compatibility alias for overlap_finish_work.', inputSchema: { type: 'object', properties: { claimId: { type: 'string' } }, required: ['claimId'], additionalProperties: false } },
@@ -40,7 +40,7 @@ async function handle(message) {
       switch (message.params?.name) {
         case 'overlap_status': value = await getRoomSnapshot(client, roomId); break;
         case 'overlap_begin_work':
-        case 'overlap_claim': value = await claimLines(client, { ...args, roomId, deviceId, workerId, agent: args.agent || 'Codex' }); claimed = true; break;
+        case 'overlap_claim': value = await claimLines(client, { ...args, roomId, deviceId, workerId, targetKey: args.target, agent: args.agent || 'Codex' }); claimed = true; break;
         case 'overlap_finish_work':
         case 'overlap_release': value = await releaseClaim(client, args.claimId); break;
         default: throw new Error('Unknown Overlap tool.');

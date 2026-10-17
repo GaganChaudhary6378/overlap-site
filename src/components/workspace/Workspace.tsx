@@ -259,7 +259,7 @@ function RoomDesk({ client, roomId, user, onMemberRemoved }: { client: SupabaseC
     const form = event.currentTarget;
     const values = new FormData(form);
     try {
-      const result = await claimLines(client, { roomId, filePath: String(values.get("file")), startLine: Number(values.get("start")), endLine: Number(values.get("end")), branch: String(values.get("branch")), agent: String(values.get("agent")) });
+      const result = await claimLines(client, { roomId, filePath: String(values.get("file")), startLine: Number(values.get("start")), endLine: Number(values.get("end")), branch: String(values.get("branch")), targetKey: String(values.get("target")), agent: String(values.get("agent")) });
       setNotice(result.conflicts.length ? `Overlap warning: ${result.conflicts.length} existing claim(s) touch these lines. Coordinate with your teammate before editing.` : "Lines claimed. Your teammates can now see your editing signal.");
       await reload.current();
     } catch (error) { setError(message(error)); }
@@ -299,12 +299,13 @@ function RoomDesk({ client, roomId, user, onMemberRemoved }: { client: SupabaseC
         {collisions.length > 0 && <p role="alert" className="notice error">Overlap detected. {collisions.length} claims share lines with another teammate. Coordinate before editing.</p>}
         <h3>{claims.length} active agent {claims.length === 1 ? "signal" : "signals"}</h3>
         {claims.length ? claims.map((claim) => <article className="claim" key={claim.id}>
-          <div><code>{claim.file_path}:{claim.start_line}–{claim.end_line}</code><p className="small muted">{claim.display_name} · {claim.agent} · {claim.branch}{activeConflicts(claim, claims, now).length > 0 ? " · ⚠ Overlap" : ""}</p></div>
+          <div><code>{claim.file_path}:{claim.start_line}–{claim.end_line}</code><p className="small muted">{claim.display_name} · {claim.agent} · {claim.branch}{claim.target_key ? ` · ${claim.target_key}` : ""}{activeConflicts(claim, claims, now).length > 0 ? " · ⚠ Overlap" : ""}</p></div>
           {claim.user_id === user.id && <button disabled={busy || !online} onClick={() => void release(claim.id)}>Release</button>}
         </article>) : <p className="empty">No active agent signals. Connect an agent, or add a manual fallback signal.</p>}
         <details><summary>Manual claim fallback</summary>
           <form onSubmit={(event) => void claim(event)}>
             <label htmlFor="claim-file">Repository-relative file path</label><input id="claim-file" name="file" required placeholder="src/login.ts" maxLength={500} />
+            <label htmlFor="claim-target">Logical target</label><input id="claim-target" name="target" placeholder="function validateLogin" maxLength={300} />
             <div className="fields"><div><label htmlFor="claim-start">First line</label><input id="claim-start" name="start" type="number" min={1} max={10000000} defaultValue={1} required /></div><div><label htmlFor="claim-end">Last line</label><input id="claim-end" name="end" type="number" min={1} max={10000000} defaultValue={50} required /></div></div>
             <div className="fields"><div><label htmlFor="claim-branch">Branch</label><input id="claim-branch" name="branch" required defaultValue="main" maxLength={120} /></div><div><label htmlFor="claim-agent">Agent</label><select id="claim-agent" name="agent"><option>Codex</option><option>Claude Code</option><option>Cursor</option><option>Manual</option></select></div></div>
             <button className="primary" disabled={busy || !online}>{busy ? "Updating…" : "Add manual signal"}</button>

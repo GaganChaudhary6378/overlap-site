@@ -90,6 +90,7 @@ Private repository created and remote configured: https://github.com/GaganChaudh
 - [x] Add independent worker leases for multiple agents on one device, preserving room/device authorization.
 - [x] Upgrade the local bridge with automatic file-watcher fallback signals. Durable offline outbox remains.
 - [x] Add Codex MCP before-write coordination and worker-scoped heartbeats. Claude Code hooks and watcher-based adapters for other tools remain.
+- [x] Reserve logical code targets for Codex work so conflicts survive line-number shifts.
 - [ ] Add an A2A coordinator Agent Card and map A2A task updates to typed Overlap tasks.
 - [ ] Replace the form-led claim view with a live multi-agent task board and verify three people running eight agents.
 

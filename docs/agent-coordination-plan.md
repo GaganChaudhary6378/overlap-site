@@ -28,7 +28,7 @@ The bridge identifies an agent worker by its device, repository, branch, integra
 
 1. **Data model and authorization**
    - Add agent workers, coordination tasks, and append-only activity events.
-   - Keep current per-device leases. Add task ownership and file/range associations.
+   - Keep current per-device leases. Add task ownership, logical code targets, and file/range associations. Ranges are display metadata; matching logical targets conflict even after line shifts.
    - Enforce membership and device authorization with RLS. Store metadata only: no source code, prompts, tokens, or provider credentials.
 
 2. **Bridge automation**
