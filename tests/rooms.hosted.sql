@@ -109,7 +109,7 @@ end;
 $$;
 -- The same account may edit on two devices. Presence-only watchers renew neither.
 do $$
-declare v_room uuid; v_created jsonb;
+declare v_room uuid; v_created jsonb; v_conflict jsonb;
 begin
   v_created := public.create_room('Device room','Alice');
   v_room := (v_created->>'room_id')::uuid;
@@ -160,13 +160,15 @@ $$;
 reset role;
 set local role authenticated;
 do $$
-declare v_room uuid; v_created jsonb;
+declare v_room uuid; v_created jsonb; v_conflict jsonb;
 begin
   perform set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
   v_created:=public.create_room('Worker room','Alice'); v_room:=(v_created->>'room_id')::uuid;
-  perform public.claim_lines(v_room,'src/login.ts',1,10,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000001');
-  perform public.claim_lines(v_room,'src/login.ts',20,30,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000002');
+  perform public.claim_lines(v_room,'src/login.ts',1,10,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000001','function login');
+  perform public.claim_lines(v_room,'src/login.ts',20,30,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000002','function logout');
   if jsonb_array_length(public.room_snapshot(v_room)->'claims')<>2 then raise exception 'Worker claims overwrote each other'; end if;
+  v_conflict:=public.claim_lines(v_room,'src/login.ts',50,60,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000003','function login');
+  if jsonb_array_length(v_conflict->'conflicts')<>1 then raise exception 'Logical target did not conflict after line shift'; end if;
 end;
 $$;
 reset role;

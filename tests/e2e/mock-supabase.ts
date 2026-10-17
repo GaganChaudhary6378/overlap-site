@@ -67,8 +67,8 @@ export class MockSupabase {
     }
     if (rpc === "claim_lines") {
       if (!member) return respond({ message: "Room access denied" }, 403);
-      const claim: RoomClaim = { id: crypto.randomUUID(), room_id: payload.p_room_id, user_id: userId, device_id: payload.p_device_id, worker_id: payload.p_worker_id, display_name: member.display_name, file_path: payload.p_file_path, start_line: payload.p_start_line, end_line: payload.p_end_line, branch: payload.p_branch, agent: payload.p_agent, expires_at: new Date(Date.now() + 90000).toISOString() };
-      const conflicts = this.claims.filter((other) => (other.user_id !== userId || other.device_id !== claim.device_id || other.worker_id !== claim.worker_id) && other.file_path === claim.file_path && other.start_line <= claim.end_line && claim.start_line <= other.end_line);
+      const claim: RoomClaim = { id: crypto.randomUUID(), room_id: payload.p_room_id, user_id: userId, device_id: payload.p_device_id, worker_id: payload.p_worker_id, target_key: payload.p_target_key || "", display_name: member.display_name, file_path: payload.p_file_path, start_line: payload.p_start_line, end_line: payload.p_end_line, branch: payload.p_branch, agent: payload.p_agent, expires_at: new Date(Date.now() + 90000).toISOString() };
+      const conflicts = this.claims.filter((other) => (other.user_id !== userId || other.device_id !== claim.device_id || other.worker_id !== claim.worker_id) && other.file_path === claim.file_path && (other.start_line <= claim.end_line && claim.start_line <= other.end_line || Boolean(claim.target_key) && other.target_key === claim.target_key));
       const existing = this.claims.find((other) => other.room_id === claim.room_id && other.user_id === claim.user_id && other.device_id === claim.device_id && other.worker_id === claim.worker_id && other.file_path === claim.file_path);
       if (existing) Object.assign(existing, claim, { id: existing.id }); else this.claims.push(claim);
       return respond({ claim_id: existing?.id ?? claim.id, conflicts });

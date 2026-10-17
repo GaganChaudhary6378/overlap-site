@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { activeConflicts, claimLines, claimsOverlap, getBrowserDeviceId, heartbeat, validateClaim, type ClaimInput, type RoomClaim } from "../src/lib/rooms";
 
 const input: ClaimInput = { roomId: "room", filePath: "src/login.ts", startLine: 40, endLine: 80, branch: "main", agent: "Codex" };
-const claim: RoomClaim = { id: "a", room_id: "room", user_id: "alice", device_id: "00000000-0000-0000-0000-000000000001", worker_id: "00000000-0000-0000-0000-000000000010", display_name: "Alice", file_path: "src/login.ts", start_line: 40, end_line: 80, branch: "main", agent: "Codex", expires_at: "2030-01-01T00:01:00Z" };
+const claim: RoomClaim = { id: "a", room_id: "room", user_id: "alice", device_id: "00000000-0000-0000-0000-000000000001", worker_id: "00000000-0000-0000-0000-000000000010", target_key: "function login", display_name: "Alice", file_path: "src/login.ts", start_line: 40, end_line: 80, branch: "main", agent: "Codex", expires_at: "2030-01-01T00:01:00Z" };
 
 test("claim boundaries reject invalid and nonrelative paths", () => {
   assert.doesNotThrow(() => validateClaim(input));
@@ -18,6 +18,7 @@ test("claim boundaries reject invalid and nonrelative paths", () => {
   assert.throws(() => validateClaim({ ...input, agent: "x".repeat(41) }));
   assert.throws(() => validateClaim({ ...input, deviceId: "invalid" }));
   assert.throws(() => validateClaim({ ...input, workerId: "invalid" }));
+  assert.throws(() => validateClaim({ ...input, targetKey: "x".repeat(301) }));
   assert.doesNotThrow(() => validateClaim({ ...input, deviceId: claim.device_id }));
   assert.doesNotThrow(() => validateClaim({ ...input, workerId: claim.worker_id }));
 });
