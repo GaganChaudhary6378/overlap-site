@@ -79,6 +79,7 @@ Current blocker: only Apple command-line tools and Swift are present; full Xcode
 
 - [ ] Verify the connected account is `GaganChaudhary6378` and select/create its `overlap-site` repository; default private unless the user requests public release.
 - [ ] Resolve CLI authentication through an authorized path or use supported connector operations; do not reuse another account's credentials.
+- [x] Rewrite the inherited scaffold commit identity to `GaganChaudhary6378`; no outside contributor remains in reachable repository history.
 - [ ] Run final secret checks on staged content/history, review the exact files, and push only the intended project.
 - [x] Add CI for tests/build/secret detection and return the repository URL and verified results.
 
