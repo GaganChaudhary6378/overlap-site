@@ -63,7 +63,7 @@ export default function Workspace() {
       <div className="intro">
         <p className="eyebrow">One line, one agent</p>
         <h1>See every edit before it collides.</h1>
-        <p className="muted">Create a room, invite a teammate, and claim lines before either agent starts to edit.</p>
+      <p className="muted">Create a room, invite your team, and connect each coding agent. Connected agents announce work automatically; manual claims remain as a fallback.</p>
       </div>
       {error && <p role="alert" className="notice error">{error}</p>}
       {loading ? <p role="status" className="notice">Opening your signal desk…</p> : !client ? (
@@ -297,21 +297,21 @@ function RoomDesk({ client, roomId, user, onMemberRemoved }: { client: SupabaseC
       {!snapshot ? <p role="status">Loading room…</p> : <>
         <ul className="members" aria-label="Connected teammates">{onlineMembers.map((member) => <li key={member.user_id}>● {member.display_name}{member.user_id === user.id ? " (you)" : ""}</li>)}</ul>
         {collisions.length > 0 && <p role="alert" className="notice error">Overlap detected. {collisions.length} claims share lines with another teammate. Coordinate before editing.</p>}
-        <h3>{claims.length} active editing {claims.length === 1 ? "claim" : "claims"}</h3>
+        <h3>{claims.length} active agent {claims.length === 1 ? "signal" : "signals"}</h3>
         {claims.length ? claims.map((claim) => <article className="claim" key={claim.id}>
           <div><code>{claim.file_path}:{claim.start_line}–{claim.end_line}</code><p className="small muted">{claim.display_name} · {claim.agent} · {claim.branch}{activeConflicts(claim, claims, now).length > 0 ? " · ⚠ Overlap" : ""}</p></div>
           {claim.user_id === user.id && <button disabled={busy || !online} onClick={() => void release(claim.id)}>Release</button>}
-        </article>) : <p className="empty">No active claims. Choose the lines you are about to edit.</p>}
-        <details open><summary>Claim lines</summary>
+        </article>) : <p className="empty">No active agent signals. Connect an agent, or add a manual fallback signal.</p>}
+        <details><summary>Manual claim fallback</summary>
           <form onSubmit={(event) => void claim(event)}>
             <label htmlFor="claim-file">Repository-relative file path</label><input id="claim-file" name="file" required placeholder="src/login.ts" maxLength={500} />
             <div className="fields"><div><label htmlFor="claim-start">First line</label><input id="claim-start" name="start" type="number" min={1} max={10000000} defaultValue={1} required /></div><div><label htmlFor="claim-end">Last line</label><input id="claim-end" name="end" type="number" min={1} max={10000000} defaultValue={50} required /></div></div>
             <div className="fields"><div><label htmlFor="claim-branch">Branch</label><input id="claim-branch" name="branch" required defaultValue="main" maxLength={120} /></div><div><label htmlFor="claim-agent">Agent</label><select id="claim-agent" name="agent"><option>Codex</option><option>Claude Code</option><option>Cursor</option><option>Manual</option></select></div></div>
-            <button className="primary" disabled={busy || !online}>{busy ? "Updating…" : "Claim lines & check overlap"}</button>
+            <button className="primary" disabled={busy || !online}>{busy ? "Updating…" : "Add manual signal"}</button>
           </form>
         </details>
         {notice && <p role="status" className="notice">{notice}</p>}
-        <p className="small muted" style={{ marginTop: 18 }}>Claims are advisory. They warn teammates; they do not block writes. Keep this desk open to renew your claims.</p>
+        <p className="small muted" style={{ marginTop: 18 }}>Supported agent tools announce before writing. File watchers announce after a save. Signals are advisory and expire if their bridge disconnects.</p>
         {snapshot.room.owner_id === user.id && snapshot.members.some((member) => member.user_id !== user.id) && <details>
           <summary>Manage room members</summary>
           {snapshot.members.filter((member) => member.user_id !== user.id).map((member) => <div className="claim" key={member.user_id}>

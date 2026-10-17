@@ -70,10 +70,10 @@ Configure Supabase and its email code template first. Room sessions are separate
 npm run agent -- login you@example.com
 npm run agent -- join YOUR_PRIVATE_INVITE 'Your name'
 npm run agent -- status
-npm run agent -- claim src/login.ts 40 80 Codex
+npm run agent -- watch /ABSOLUTE/PATH/TO/REPOSITORY Codex
 ```
 
-Keep the claim process running while editing; it renews leases. Ctrl+C releases the claim. A failed heartbeat is reported and the lease expires. Commands also include `release CLAIM_UUID`, `select ROOM_UUID`, `create ROOM_NAME DISPLAY_NAME`, and `logout`.
+`watch` reports saved files automatically, without uploading source code. It observes changes after saving, so it warns teammates but cannot stop the write that triggered it. Run one watcher per agent when you need the agent label to be exact. Ctrl+C releases its signals. Commands also include manual fallback `claim RELATIVE_FILE START END [AGENT]`, `release CLAIM_UUID`, `select ROOM_UUID`, `create ROOM_NAME DISPLAY_NAME`, and `logout`.
 
 For Codex, register MCP after room login. Run from this project directory:
 
@@ -81,7 +81,7 @@ For Codex, register MCP after room login. Run from this project directory:
 codex mcp add overlap -- node --import tsx /ABSOLUTE/PATH/overlap-site/bridge/mcp.mjs
 ```
 
-Use this directory as the MCP command's working directory, or use an absolute path to the installed `tsx` loader when launching elsewhere. Tools: `overlap_status`, `overlap_claim`, `overlap_release`. Instruct agents to inspect status before editing, announce their range, ask before proceeding on conflicts, then release. The MCP process renews active claims while running. Automatic before-write enforcement and Claude/Cursor-specific hooks are not implemented.
+Use this directory as the MCP command's working directory, or use an absolute path to the installed `tsx` loader when launching elsewhere. Tools: `overlap_status`, `overlap_begin_work`, and `overlap_finish_work`; the older `overlap_claim` and `overlap_release` names still work. Codex receives the instruction to announce work before every edit and gets structured conflict data back. Each MCP process has its own worker identity, so multiple agents on one Mac do not overwrite each other's leases. The MCP process renews active claims while running. Claude/Cursor-specific before-write hooks and A2A interoperability are planned in [the coordination plan](docs/agent-coordination-plan.md).
 
 Use one running CLI/MCP bridge per account on a Mac to avoid shared refresh-session races. Claims carry device IDs. Browser and CLI/MCP heartbeats renew only that device’s active claims. The Mac viewer sends presence-only heartbeats, so it cannot keep a disconnected editing device’s claims alive. Paths must be canonical relative paths; platform-specific case aliases remain a limitation.
 

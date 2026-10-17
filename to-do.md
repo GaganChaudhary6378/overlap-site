@@ -84,6 +84,19 @@ Current blocker: only Apple command-line tools and Swift are present; full Xcode
 
 Private repository created and remote configured: https://github.com/GaganChaudhary6378/overlap-site. Personal CLI authentication verified with network access. Source push/CI verification pending.
 
+## Phase 8 — Automatic multi-agent coordination
+
+- [x] Record the architecture and acceptance plan in `docs/agent-coordination-plan.md`.
+- [x] Add independent worker leases for multiple agents on one device, preserving room/device authorization.
+- [x] Upgrade the local bridge with automatic file-watcher fallback signals. Durable offline outbox remains.
+- [x] Add Codex MCP before-write coordination and worker-scoped heartbeats. Claude Code hooks and watcher-based adapters for other tools remain.
+- [ ] Add an A2A coordinator Agent Card and map A2A task updates to typed Overlap tasks.
+- [ ] Replace the form-led claim view with a live multi-agent task board and verify three people running eight agents.
+
+Constraint: A2A lets participating agents exchange tasks, but it cannot detect a local write on its own. Each connected machine needs an Overlap adapter or file watcher. See `docs/agent-coordination-plan.md`.
+
+Worker-lease migration applied to the hosted Supabase project and verified through the live schema. Local SQL tests cover independent same-device workers and worker-scoped renewals.
+
 Update this checklist after every completed phase. Parallel implementation assignments should own separate files and coordinate shared interfaces before edits.
 
 ## Implementation notes
