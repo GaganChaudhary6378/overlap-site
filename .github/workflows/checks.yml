@@ -1,0 +1,49 @@
+name: Project checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run secrets
+      - run: npm run test
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-report
+          path: playwright-report/
+  room-database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql postgresql-contrib
+      - run: PATH="$(pg_config --bindir):$PATH" bash tests/run-room-sql.sh
+  mock-collaboration:
+    runs-on: ubuntu-latest
+    env:
+      E2E_SUPABASE_STUB: '1'
+      NEXT_PUBLIC_SUPABASE_URL: https://overlap-e2e.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-public-anon-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/e2e/workspace.mock.spec.ts

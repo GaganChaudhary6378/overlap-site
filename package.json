@@ -6,14 +6,27 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.mjs",
+    "test:e2e": "playwright test",
+    "typecheck": "next typegen && tsc --noEmit",
+    "secrets": "node scripts/check-secrets.mjs --history",
+    "hooks:install": "node scripts/install-hooks.mjs",
+    "bridge": "node bridge/server.mjs",
+    "agent": "node --env-file-if-exists=.env.local --import tsx scripts/overlap.mjs",
+    "agent:mcp": "node --env-file-if-exists=.env.local --import tsx bridge/mcp.mjs",
+    "test:live": "node --env-file=.env.local tests/live-smoke.mjs",
+    "test:sql": "bash tests/run-room-sql.sh"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.118.0",
+    "jose": "6.2.12",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -21,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
+    "tsx": "4.23.15",
     "typescript": "^5"
   }
 }
