@@ -14,6 +14,8 @@ export type RoomClaim = {
   display_name: string;
   file_path: string;
   device_id: string;
+  worker_id: string;
+  target_key: string;
   start_line: number;
   end_line: number;
   branch: string;
@@ -34,6 +36,8 @@ export type ClaimInput = {
   branch: string;
   agent: string;
   deviceId?: string;
+  workerId?: string;
+  targetKey?: string;
 };
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -56,6 +60,8 @@ export function getBrowserDeviceId(): string {
 
 export function validateClaim(input: ClaimInput): void {
   if (input.deviceId !== undefined && !uuidPattern.test(input.deviceId)) throw new Error("Use a valid device UUID.");
+  if (input.workerId !== undefined && !uuidPattern.test(input.workerId)) throw new Error("Use a valid worker UUID.");
+  if (input.targetKey !== undefined && (input.targetKey.trim().length > 300 || /[\x00-\x1f\x7f]/.test(input.targetKey))) throw new Error("Use a work target up to 300 characters.");
   if (!input.filePath || input.filePath.length > 500 || /(^\/|\/\/|\/$|\\|(^|\/)\.\.?($|\/)|[\x00-\x1f\x7f])/.test(input.filePath)) {
     throw new Error("Use a relative file path without dot segments.");
   }
@@ -111,13 +117,15 @@ export function claimLines(client: SupabaseClient, input: ClaimInput) {
     p_start_line: input.startLine, p_end_line: input.endLine,
     p_branch: input.branch, p_agent: input.agent,
     p_device_id: input.deviceId ?? getBrowserDeviceId(),
+    p_worker_id: input.workerId ?? input.deviceId ?? getBrowserDeviceId(),
+    p_target_key: input.targetKey?.trim() ?? "",
   });
 }
 export function releaseClaim(client: SupabaseClient, claimId: string) {
   return rpc<void>(client, "release_claim", { p_claim_id: claimId });
 }
-export function heartbeat(client: SupabaseClient, roomId: string, deviceId?: string) {
-  return rpc<void>(client, "heartbeat", { p_room_id: roomId, p_device_id: deviceId ?? (typeof window !== "undefined" ? getBrowserDeviceId() : null) });
+export function heartbeat(client: SupabaseClient, roomId: string, deviceId?: string, workerId?: string) {
+  return rpc<void>(client, "heartbeat", { p_room_id: roomId, p_device_id: deviceId ?? (typeof window !== "undefined" ? getBrowserDeviceId() : null), p_worker_id: workerId ?? null });
 }
 
 // Realtime is an invalidation signal; fetch an authorized snapshot after every change.

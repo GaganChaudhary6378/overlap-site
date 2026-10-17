@@ -17,5 +17,9 @@ test('MCP survives malformed requests and advertises advisory coordination tools
   const messages = text.trim().split('\n').map(line => JSON.parse(line));
   assert.equal(messages[0].error.code, -32600);
   assert.equal(messages.find(message => message.id === 1).result.serverInfo.name, 'overlap');
-  assert.equal(messages.find(message => message.id === 2).result.tools.length, 3);
+  const tools = messages.find(message => message.id === 2).result.tools;
+  assert.equal(tools.length, 5);
+  assert.ok(tools.some(tool => tool.name === 'overlap_begin_work'));
+  assert.ok(tools.some(tool => tool.name === 'overlap_finish_work'));
+  assert.ok(tools.find(tool => tool.name === 'overlap_begin_work').inputSchema.required.includes('target'));
 });

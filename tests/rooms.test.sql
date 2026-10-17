@@ -14,6 +14,8 @@ grant usage on schema public,auth to authenticated,anon;
 grant execute on function auth.uid() to authenticated,anon;
 create publication supabase_realtime;
 \ir ../supabase/migrations/202610170001_rooms.sql
+\ir ../supabase/migrations/202610170002_worker_leases.sql
+\ir ../supabase/migrations/202610170003_semantic_targets.sql
 insert into auth.users values
  ('00000000-0000-0000-0000-000000000001'),
  ('00000000-0000-0000-0000-000000000002'),
@@ -123,7 +125,7 @@ end;
 $$;
 -- The same account may edit on two devices. Presence-only watchers renew neither.
 do $$
-declare v_room uuid; v_created jsonb;
+declare v_room uuid; v_created jsonb; v_conflict jsonb;
 begin
   v_created := public.create_room('Device room','Alice');
   v_room := (v_created->>'room_id')::uuid;
@@ -168,6 +170,36 @@ begin
   select expires_at into v_a from public.room_claims where room_id=v_room and device_id='10000000-0000-0000-0000-000000000001';
   if v_a>now() or jsonb_array_length(public.room_snapshot(v_room)->'claims')<>1 then raise exception 'Another device kept an expired lease active'; end if;
   raise notice 'PASS: same-user device leases coexist; presence-only and other-device heartbeats cannot renew or resurrect them';
+end;
+$$;
+-- Two workers on one device keep independent claims and renew only their own lease.
+reset role;
+set local role authenticated;
+do $$
+declare v_room uuid; v_created jsonb; v_conflict jsonb;
+begin
+  perform set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
+  v_created:=public.create_room('Worker room','Alice'); v_room:=(v_created->>'room_id')::uuid;
+  perform public.claim_lines(v_room,'src/login.ts',1,10,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000001','function login');
+  perform public.claim_lines(v_room,'src/login.ts',20,30,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000002','function logout');
+  if jsonb_array_length(public.room_snapshot(v_room)->'claims')<>2 then raise exception 'Worker claims overwrote each other'; end if;
+  v_conflict:=public.claim_lines(v_room,'src/login.ts',50,60,'main','Codex','20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000003','function login');
+  if jsonb_array_length(v_conflict->'conflicts')<>1 then raise exception 'Logical target did not conflict after line shift'; end if;
+end;
+$$;
+reset role;
+update public.room_claims set expires_at=now()+interval '30 seconds' where room_id=(select id from public.rooms where name='Worker room');
+set local role authenticated;
+do $$
+declare v_room uuid; v_first timestamptz; v_second timestamptz;
+begin
+  perform set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
+  select id into v_room from public.rooms where name='Worker room';
+  perform public.heartbeat(v_room,'20000000-0000-0000-0000-000000000001','30000000-0000-0000-0000-000000000001');
+  select expires_at into v_first from public.room_claims where room_id=v_room and worker_id='30000000-0000-0000-0000-000000000001';
+  select expires_at into v_second from public.room_claims where room_id=v_room and worker_id='30000000-0000-0000-0000-000000000002';
+  if v_first<=now()+interval '89 seconds' or v_second<>now()+interval '30 seconds' then raise exception 'Worker heartbeat renewed the wrong lease'; end if;
+  raise notice 'PASS: same-device workers keep independent leases';
 end;
 $$;
 rollback;

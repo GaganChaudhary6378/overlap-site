@@ -63,6 +63,7 @@ Acceptance example: Alice holds lines 40–88 of a file; Bob requests lines 52�
 - [x] Install Playwright and run desktop/mobile browser tests, including two isolated browser contexts for collaboration.
 - [ ] Test loading/error/empty/offline/reconnect states, logout, keyboard access, and production build.
 - [x] Capture actual app screenshots for README and document exact checks and unresolved limits.
+- [x] Show actionable guidance when Supabase's built-in email provider rate limit is reached.
 - [ ] Compare repeatable Playwright automation with browser-act on the same bounded scenario if both are available. Record setup/run duration, calls, failure/retry counts, and billable usage only when exposed; report unknown costs as unknown.
 
 ## Phase 6 — macOS companion and desktop widget
@@ -82,6 +83,20 @@ Current blocker: only Apple command-line tools and Swift are present; full Xcode
 - [x] Add CI for tests/build/secret detection and return the repository URL and verified results.
 
 Private repository created and remote configured: https://github.com/GaganChaudhary6378/overlap-site. Personal CLI authentication verified with network access. Source push/CI verification pending.
+
+## Phase 8 — Automatic multi-agent coordination
+
+- [x] Record the architecture and acceptance plan in `docs/agent-coordination-plan.md`.
+- [x] Add independent worker leases for multiple agents on one device, preserving room/device authorization.
+- [x] Upgrade the local bridge with automatic file-watcher fallback signals. Durable offline outbox remains.
+- [x] Add Codex MCP before-write coordination and worker-scoped heartbeats. Claude Code hooks and watcher-based adapters for other tools remain.
+- [x] Reserve logical code targets for Codex work so conflicts survive line-number shifts.
+- [ ] Add an A2A coordinator Agent Card and map A2A task updates to typed Overlap tasks.
+- [ ] Replace the form-led claim view with a live multi-agent task board and verify three people running eight agents.
+
+Constraint: A2A lets participating agents exchange tasks, but it cannot detect a local write on its own. Each connected machine needs an Overlap adapter or file watcher. See `docs/agent-coordination-plan.md`.
+
+Worker-lease migration applied to the hosted Supabase project and verified through the live schema. Local SQL tests cover independent same-device workers and worker-scoped renewals.
 
 Update this checklist after every completed phase. Parallel implementation assignments should own separate files and coordinate shared interfaces before edits.
 
