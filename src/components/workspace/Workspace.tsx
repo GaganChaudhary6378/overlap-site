@@ -13,6 +13,11 @@ function message(error: unknown) {
   return error instanceof Error ? error.message : "Request failed. Check your connection and try again.";
 }
 
+function appRedirectUrl() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
+  return `${configured || window.location.origin}/app`;
+}
+
 function subscribeToConnectivity(onChange: () => void) {
   window.addEventListener("online", onChange); window.addEventListener("offline", onChange);
   return () => { window.removeEventListener("online", onChange); window.removeEventListener("offline", onChange); };
@@ -82,7 +87,7 @@ function SignIn({ client }: { client: SupabaseClient }) {
     try {
       const { error } = sent
         ? await client.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: "email" })
-        : await client.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: `${window.location.origin}/app` } });
+        : await client.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: appRedirectUrl() } });
       if (error) throw error;
       setSent(true);
     } catch (error) { setError(message(error)); }
