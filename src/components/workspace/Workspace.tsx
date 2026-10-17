@@ -10,6 +10,9 @@ import {
 } from "@/lib/rooms";
 
 function message(error: unknown) {
+  if (typeof error === "object" && error !== null && "code" in error && error.code === "over_email_send_rate_limit") {
+    return "Supabase email limit reached. Try again later, or configure custom SMTP in Supabase Auth settings.";
+  }
   return error instanceof Error ? error.message : "Request failed. Check your connection and try again.";
 }
 

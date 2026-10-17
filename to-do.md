@@ -63,6 +63,7 @@ Acceptance example: Alice holds lines 40–88 of a file; Bob requests lines 52�
 - [x] Install Playwright and run desktop/mobile browser tests, including two isolated browser contexts for collaboration.
 - [ ] Test loading/error/empty/offline/reconnect states, logout, keyboard access, and production build.
 - [x] Capture actual app screenshots for README and document exact checks and unresolved limits.
+- [x] Show actionable guidance when Supabase's built-in email provider rate limit is reached.
 - [ ] Compare repeatable Playwright automation with browser-act on the same bounded scenario if both are available. Record setup/run duration, calls, failure/retry counts, and billable usage only when exposed; report unknown costs as unknown.
 
 ## Phase 6 — macOS companion and desktop widget
