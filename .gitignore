@@ -32,6 +32,22 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local credentials and generated state
+.local/
+.serena/
+*.key
+*.p12
+*.pfx
+*credentials*.json
+*auth-token*.json
+playwright-report/
+test-results/
+macos/.build/
+macos/DerivedData/
+*.xcuserstate
+xcuserdata/
 
 # vercel
 .vercel
@@ -39,3 +55,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.gstack/
