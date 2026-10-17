@@ -28,6 +28,7 @@ struct RoomPanel: View {
     @ObservedObject var store: RoomStore
     @State private var floating = true
     @State private var settingsExpanded = true
+    @FocusState private var focusedField: ConnectionField?
     private let ink = Color(red: 0.17, green: 0.19, blue: 0.23)
     private let brass = Color(red: 0.52, green: 0.39, blue: 0.20)
     var body: some View {
@@ -75,12 +76,17 @@ struct RoomPanel: View {
                 DisclosureGroup("Connection settings", isExpanded: $settingsExpanded) {
                     VStack(spacing: 10) {
                         TextField("Supabase URL", text: $store.baseURL)
+                            .focused($focusedField, equals: .baseURL)
                         TextField("Supabase publishable / anon key", text: $store.publicKey)
+                            .focused($focusedField, equals: .publicKey)
                         TextField("Room UUID", text: $store.roomID)
+                            .focused($focusedField, equals: .roomID)
                         if !store.signedIn {
                             TextField("Your email", text: $store.email)
+                                .focused($focusedField, equals: .email)
                             Button("Send sign-in code") { store.perform { try await store.sendCode() } }
                             TextField("Email code", text: $store.code)
+                                .focused($focusedField, equals: .code)
                             Button("Verify code") { store.perform { try await store.verify() } }
                         }
                         HStack {
@@ -101,6 +107,11 @@ struct RoomPanel: View {
         .frame(minWidth: 380, minHeight: 540)
         .preferredColorScheme(.light)
         .onOpenURL { _ in NSApplication.shared.activate(ignoringOtherApps: true) }
+        .onAppear {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+            NSApplication.shared.windows.first?.makeKeyAndOrderFront(nil)
+            focusedField = .baseURL
+        }
         .task {
             store.restore()
             while !Task.isCancelled {
@@ -111,6 +122,10 @@ struct RoomPanel: View {
             }
         }
     }
+    private enum ConnectionField: Hashable {
+        case baseURL, publicKey, roomID, email, code
+    }
+
     private func metric(_ label: String, _ value: Int) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(value.formatted()).font(.custom("Georgia", size: 28))
